@@ -1,0 +1,18 @@
+# This is a template file.
+# Copy this file to 'application-dev.yml' and fill in your local credentials.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/roomie-db
+    username: #YOUR_USERNAME_HERE
+    password: #YOUR_PASSWORD_HERE
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect

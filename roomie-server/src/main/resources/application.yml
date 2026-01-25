@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: roomie-lms-service
+  profiles:
+    active: dev
+
+server:
+  port: 8080
