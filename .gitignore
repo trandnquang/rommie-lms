@@ -12,3 +12,8 @@ Thumbs.db
 # Environment secrets
 .env
 .env.local
+
+# Python
+venv/
+__pycache__/
+
