@@ -1,57 +1,46 @@
 package com.trandnquang.roomie.entity;
 
+import com.trandnquang.roomie.model.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Table(name = "room")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @SQLDelete(sql = "UPDATE room SET is_deleted = true WHERE id=?")
 @Where(clause = "is_deleted = false")
-public class Room {
-
+@Getter @Setter
+@SuperBuilder
+@NoArgsConstructor @AllArgsConstructor
+public class Room extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id", nullable = false)
+    @JoinColumn(name = "property_id")
     private Property property;
 
-    @Column(name = "room_number", nullable = false, length = 50)
     private String roomNumber;
-
-    @Column(name = "floor_number")
     private Integer floorNumber;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal area;
 
     @Column(precision = 15, scale = 2)
-    private BigDecimal price;
-
+    private BigDecimal basePrice;
     private Integer capacity;
-
-    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private String status = "AVAILABLE";
+    private RoomStatus status = RoomStatus.AVAILABLE;
 
     @Column(name = "is_deleted")
     @Builder.Default
-    private Boolean isDeleted = false;
-
-    // Quan hệ 1-N với Contract
-    @OneToMany(mappedBy = "room", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Contract> contracts;
+    private boolean isDeleted = false;
 }

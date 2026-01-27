@@ -1,62 +1,93 @@
 package com.trandnquang.roomie.service;
 
-import com.trandnquang.roomie.dto.request.TenantRequest;
-import com.trandnquang.roomie.dto.response.TenantResponse;
+import com.trandnquang.roomie.dto.tenant.TenantRequest;
 import com.trandnquang.roomie.entity.Tenant;
 import com.trandnquang.roomie.repo.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final AddressService addressService; // Inject để validate địa chỉ
 
-    public List<TenantResponse> getAllTenants() {
-        return tenantRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    public TenantResponse createTenant(TenantRequest request) {
-        Optional<Tenant> existing = tenantRepository.findByIdentityNumber(request.getIdentityNumber());
-        if (existing.isPresent()) {
-            throw new RuntimeException("Tenant already exists");
+    // --- 1. CREATE TENANT ---
+    @Transactional
+    public Tenant createTenant(TenantRequest request) {
+        // Validation 1: Kiểm tra trùng CMND/CCCD
+        if (tenantRepository.findByIdentityCardNumber(request.getIdentityCardNumber()).isPresent()) {
+            throw new RuntimeException("Identity Card Number already exists: " + request.getIdentityCardNumber());
         }
 
-        Tenant tenant = new Tenant();
-        tenant.setIdentityNumber(request.getIdentityNumber());
+        // Validation 2: Kiểm tra Địa chỉ (Tỉnh - Huyện - Xã) có khớp nhau không
+        if (!addressService.isValidAddress(request.getCity(), request.getDistrict(), request.getWard())) {
+            throw new IllegalArgumentException("Địa chỉ không hợp lệ. Vui lòng kiểm tra lại Tỉnh/Huyện/Xã.");
+        }
+
+        // Manual Mapping: DTO -> Entity
+        Tenant tenant = Tenant.builder()
+                .fullName(request.getFullName())
+                .identityCardNumber(request.getIdentityCardNumber())
+                .phoneNumber(request.getPhoneNumber())
+                .email(request.getEmail())
+                .birthday(request.getBirthday())
+                .gender(request.getGender())
+                .addressLine(request.getAddressLine())
+                .ward(request.getWard())
+                .district(request.getDistrict())
+                .city(request.getCity())
+                .isDeleted(false)
+                .build();
+
+        return tenantRepository.save(tenant);
+    }
+
+    // --- 2. GET ALL ---
+    public List<Tenant> getAllTenants() {
+        return tenantRepository.findAll();
+    }
+
+    // --- 3. GET BY ID ---
+    public Tenant getTenantById(Long id) {
+        return tenantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tenant not found with id: " + id));
+    }
+
+    // --- 4. UPDATE ---
+    @Transactional
+    public Tenant updateTenant(Long id, TenantRequest request) {
+        Tenant tenant = getTenantById(id);
+
+        // Nếu sửa địa chỉ, phải validate lại
+        if (!addressService.isValidAddress(request.getCity(), request.getDistrict(), request.getWard())) {
+            throw new IllegalArgumentException("Địa chỉ cập nhật không hợp lệ.");
+        }
+
+        // Cập nhật thông tin
         tenant.setFullName(request.getFullName());
         tenant.setPhoneNumber(request.getPhoneNumber());
         tenant.setEmail(request.getEmail());
+        tenant.setBirthday(request.getBirthday());
+        tenant.setGender(request.getGender());
         tenant.setAddressLine(request.getAddressLine());
         tenant.setWard(request.getWard());
         tenant.setDistrict(request.getDistrict());
         tenant.setCity(request.getCity());
-        tenant.setGender(request.getGender());
-        tenant.setDateOfBirth(request.getDateOfBirth());
+        // Lưu ý: Thường không cho sửa số CMND tùy tiện, nên tôi không set lại field đó ở đây
 
-        return mapToResponse(tenantRepository.save(tenant));
+        return tenantRepository.save(tenant);
     }
 
-    private TenantResponse mapToResponse(Tenant tenant) {
-        TenantResponse response = new TenantResponse();
-        response.setId(tenant.getId());
-        response.setIdentityNumber(tenant.getIdentityNumber());
-        response.setFullName(tenant.getFullName());
-        response.setPhoneNumber(tenant.getPhoneNumber());
-        response.setEmail(tenant.getEmail());
-        // Gộp địa chỉ hiển thị cho đẹp
-        String fullAddress = String.format("%s, %s, %s, %s",
-             tenant.getAddressLine(), tenant.getWard(), tenant.getDistrict(), tenant.getCity());
-        response.setAddressFull(fullAddress);
-        response.setGender(tenant.getGender());
-        response.setDateOfBirth(tenant.getDateOfBirth());
-        return response;
+    // --- 5. DELETE ---
+    @Transactional
+    public void deleteTenant(Long id) {
+        Tenant tenant = getTenantById(id);
+        // Soft Delete (nhờ @SQLDelete trong Entity)
+        tenantRepository.delete(tenant);
     }
 }

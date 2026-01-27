@@ -8,9 +8,8 @@ import java.util.List;
 
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, Long> {
-    // Tìm kiếm khu trọ theo tên (VD: gõ "Green" ra "Green House") - Không phân biệt hoa thường
-    List<Property> findByNameContainingIgnoreCase(String name);
+    // Filter properties by location (Search feature)
+    List<Property> findByCityAndDistrict(String city, String district);
 
-    // Lọc khu trọ theo thành phố
-    List<Property> findByCity(String city);
+    // Note: 'isDeleted' filter is handled automatically by @Where in Entity
 }

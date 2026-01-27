@@ -2,37 +2,39 @@ package com.trandnquang.roomie.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "resident")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Resident {
-
+@SQLDelete(sql = "UPDATE resident SET is_deleted = true WHERE id=?")
+@Where(clause = "is_deleted = false")
+@Getter @Setter
+@SuperBuilder
+@NoArgsConstructor @AllArgsConstructor
+public class Resident extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contract_id", nullable = false)
+    @JoinColumn(name = "contract_id")
     private Contract contract;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant; // Resident cũng là 1 Tenant (về mặt thông tin cá nhân)
+    private String fullName;
+    private String phoneNumber;
+    private String identityCardNumber;
 
     @Builder.Default
-    private String role = "MEMBER";
+    private boolean isContractHolder = false; // Check if this resident is the Tenant
 
-    @Column(name = "move_in_date")
-    @Builder.Default
-    private LocalDate moveInDate = LocalDate.now();
-
-    @Column(name = "move_out_date")
+    private LocalDate moveInDate;
     private LocalDate moveOutDate;
+
+    @Column(name = "is_deleted")
+    @Builder.Default
+    private boolean isDeleted = false;
 }

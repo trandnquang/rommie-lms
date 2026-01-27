@@ -5,12 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ResidentRepository extends JpaRepository<Resident, Long> {
-    // Lấy danh sách người đang ở trong một hợp đồng
+
+    // List all people living under a specific contract
     List<Resident> findByContractId(Long contractId);
 
-    // Kiểm tra xem Tenant A có đang là resident ở đâu đó không
-    boolean existsByTenantId(Long tenantId);
+    // Check if a person is already resident elsewhere (by ID Card)
+    Optional<Resident> findByIdentityCardNumber(String identityCardNumber);
 }
