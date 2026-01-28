@@ -1,22 +1,30 @@
 package com.trandnquang.roomie.dto.contract;
 
+import com.trandnquang.roomie.dto.utility.TierConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContractUtilityResponse {
-    private Long id;              // ID của dòng ContractUtility
-    private Long utilityId;       // ID của Utility gốc
-    private String utilityName;   // Tên dịch vụ (Flatten từ Utility gốc)
-    private String utilityUnit;   // Đơn vị tính (kWh, Người...)
-    private BigDecimal price;     // Giá áp dụng
-    private Integer amount;       // Số lượng đăng ký
-    private BigDecimal startIndex;    // Chỉ số ban đầu (nếu có)
+    private Long id;
+    private Long utilityId;
+    private String utilityName;
+    private String utilityUnit;
+
+    // Giá chốt (cho Fixed/Flat)
+    private BigDecimal price;
+
+    // Cấu hình bậc thang chốt (cho Tiered) - QUAN TRỌNG
+    private List<TierConfig> tierConfig;
+
+    private Integer amount;
+    private BigDecimal startIndex;
 }

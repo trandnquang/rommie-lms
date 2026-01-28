@@ -1,0 +1,25 @@
+package com.trandnquang.roomie.controller;
+
+import com.trandnquang.roomie.service.DashboardService;
+// Import DashboardStats từ Service (hoặc DTO nếu bạn đã tách)
+import com.trandnquang.roomie.service.DashboardService.DashboardStats;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/dashboard")
+@RequiredArgsConstructor
+public class DashboardController {
+
+    private final DashboardService dashboardService;
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<DashboardStats> getStats() {
+        return ResponseEntity.ok(dashboardService.getStats());
+    }
+}

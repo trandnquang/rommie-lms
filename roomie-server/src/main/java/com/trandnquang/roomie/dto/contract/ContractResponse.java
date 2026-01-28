@@ -1,5 +1,6 @@
 package com.trandnquang.roomie.dto.contract;
 
+import com.trandnquang.roomie.dto.resident.ResidentResponse;
 import com.trandnquang.roomie.model.enums.ContractStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -13,21 +14,26 @@ public class ContractResponse {
     private Long id;
     private String contractCode;
 
-    // Thông tin phòng tóm tắt
+    // Room Info
+    private Long roomId; // Thêm ID để UI có thể link tới trang chi tiết phòng
     private String roomNumber;
     private String propertyName;
+    private String address; // Địa chỉ nhà trọ
 
-    // Thông tin người thuê chính tóm tắt
+    // Tenant Info
+    private Long tenantId;
     private String tenantName;
     private String tenantPhone;
 
+    // Contract Details
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal rentPrice;
     private BigDecimal depositAmount;
+    private Integer paymentCycle;
     private ContractStatus status;
 
-    // Chi tiết con
+    // Children
     private List<ResidentResponse> residents;
     private List<ContractUtilityResponse> utilities;
 }

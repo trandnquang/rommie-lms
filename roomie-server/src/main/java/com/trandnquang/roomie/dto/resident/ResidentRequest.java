@@ -1,4 +1,4 @@
-package com.trandnquang.roomie.dto.contract;
+package com.trandnquang.roomie.dto.resident;
 
 import lombok.Data;
 

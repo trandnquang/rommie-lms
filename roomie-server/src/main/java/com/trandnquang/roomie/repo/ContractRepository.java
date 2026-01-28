@@ -1,8 +1,9 @@
 package com.trandnquang.roomie.repo;
 
-
 import com.trandnquang.roomie.entity.Contract;
-import com.trandnquang.roomie.model.enums.ContractStatus; // Import Enum
+import com.trandnquang.roomie.model.enums.ContractStatus;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,16 +18,18 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     Optional<Contract> findByContractCode(String contractCode);
 
-    // FIX: String status -> ContractStatus status
-    Optional<Contract> findByRoomIdAndStatus(Long roomId, ContractStatus status);
-
+    // PERFORMANCE: Dùng EntityGraph để fetch luôn Room và Tenant, tránh lỗi N+1
+    @EntityGraph(attributePaths = {"room", "tenant"})
     List<Contract> findByTenantId(Long tenantId);
 
-    // FIX: Dùng cho Batch Job tính tiền
-    List<Contract> findByStatus(ContractStatus status);
+    // PERFORMANCE: Hàm này dùng cho Batch Job (tính tiền hàng tháng).
+    // Phải fetch data liên quan và hỗ trợ Pageable để xử lý từng đợt (chunk processing).
+    @EntityGraph(attributePaths = {"room", "tenant", "contractUtilities"})
+    List<Contract> findByStatus(ContractStatus status, Pageable pageable);
 
-    // FIX: JPQL query
-    // Lưu ý: Khi so sánh trong @Query, tốt nhất là truyền Enum vào làm tham số (:status)
+    // Kiểm tra nhanh để validate
+    boolean existsByRoomIdAndStatus(Long roomId, ContractStatus status);
+
     @Query("SELECT c FROM Contract c WHERE c.endDate BETWEEN :startDate AND :endDate AND c.status = :status")
     List<Contract> findExpiringContracts(
             @Param("startDate") LocalDate startDate,

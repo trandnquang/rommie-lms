@@ -34,7 +34,7 @@ public class RoomService {
                 .property(property) // Gán quan hệ
                 .roomNumber(request.getRoomNumber())
                 .floorNumber(request.getFloorNumber())
-                .area(BigDecimal.valueOf(request.getArea())) // Lưu ý convert Double -> BigDecimal
+                .area(request.getArea()) // Lưu ý convert Double -> BigDecimal
                 .basePrice(request.getBasePrice())
                 .capacity(request.getCapacity())
                 .imageUrl(request.getImageUrl())

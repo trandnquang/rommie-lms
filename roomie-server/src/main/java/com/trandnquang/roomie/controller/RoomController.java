@@ -1,3 +1,4 @@
+// RoomController.java
 package com.trandnquang.roomie.controller;
 
 import com.trandnquang.roomie.dto.room.RoomRequest;
@@ -6,7 +7,9 @@ import com.trandnquang.roomie.model.enums.RoomStatus;
 import com.trandnquang.roomie.service.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,25 +22,19 @@ public class RoomController {
     private final RoomService roomService;
 
     @PostMapping
-    public ResponseEntity<RoomResponse> create(@Valid @RequestBody RoomRequest request) {
-        return ResponseEntity.ok(roomService.createRoom(request));
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<RoomResponse> createRoom(@Valid @RequestBody RoomRequest request) {
+        return new ResponseEntity<>(roomService.createRoom(request), HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<RoomResponse>> getAll(@RequestParam(required = false) Long propertyId) {
-        if (propertyId != null) {
-            return ResponseEntity.ok(roomService.getRoomsByProperty(propertyId));
-        }
-        return ResponseEntity.ok(roomService.getAllRooms());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<RoomResponse> update(@PathVariable Long id, @Valid @RequestBody RoomRequest request) {
-        return ResponseEntity.ok(roomService.updateRoom(id, request));
+    @GetMapping("/property/{propertyId}")
+    public ResponseEntity<List<RoomResponse>> getRoomsByProperty(@PathVariable Long propertyId) {
+        return ResponseEntity.ok(roomService.getRoomsByProperty(propertyId));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestParam RoomStatus status) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<Void> updateRoomStatus(@PathVariable Long id, @RequestParam RoomStatus status) {
         roomService.updateRoomStatus(id, status);
         return ResponseEntity.noContent().build();
     }

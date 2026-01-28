@@ -9,10 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface ResidentRepository extends JpaRepository<Resident, Long> {
-
-    // List all people living under a specific contract
     List<Resident> findByContractId(Long contractId);
 
-    // Check if a person is already resident elsewhere (by ID Card)
-    Optional<Resident> findByIdentityCardNumber(String identityCardNumber);
+    // FIX: Trả về List để xem lịch sử cư trú của người này qua các hợp đồng khác nhau
+    List<Resident> findByIdentityCardNumber(String identityCardNumber);
 }

@@ -1,12 +1,19 @@
 package com.trandnquang.roomie.dto.tenant;
 
 import com.trandnquang.roomie.model.enums.Gender;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TenantRequest {
     @NotBlank(message = "ID Card is required")
     private String identityCardNumber;
@@ -18,7 +25,9 @@ public class TenantRequest {
     @Pattern(regexp = "^\\d{10,11}$", message = "Phone number must be 10-11 digits")
     private String phoneNumber;
 
+    @Email(message = "Invalid email format")
     private String email;
+
     private LocalDate birthday;
     private Gender gender;
 

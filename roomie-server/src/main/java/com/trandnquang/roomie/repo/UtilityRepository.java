@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface UtilityRepository extends JpaRepository<Utility, Long> {
-
-    // Get all active services to display in "Create Contract" form
     List<Utility> findByIsActiveTrue();
+    // Validate tên dịch vụ không trùng nhau
+    boolean existsByName(String name);
 }

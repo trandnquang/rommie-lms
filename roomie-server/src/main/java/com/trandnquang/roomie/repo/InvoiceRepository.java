@@ -1,10 +1,11 @@
 package com.trandnquang.roomie.repo;
 
-
 import com.trandnquang.roomie.entity.Invoice;
-import com.trandnquang.roomie.model.enums.InvoiceStatus; // Import Enum
+import com.trandnquang.roomie.model.enums.InvoiceStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,19 +16,25 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     Optional<Invoice> findByInvoiceCode(String invoiceCode);
 
-    List<Invoice> findByContractIdOrderByMonthDesc(Long contractId);
+    List<Invoice> findByContractIdOrderByYearDescMonthDesc(Long contractId);
 
-    // Kiểm tra xem tháng này hợp đồng này đã có hóa đơn chưa
-    boolean existsByContractIdAndMonthAndYear(Long contractId, Integer month, Integer year);
+    List<Invoice> findByContractIdAndMonthAndYear(Long contractId, Integer month, Integer year);
 
-    // FIX: Tìm công nợ (Invoice có trạng thái chưa hoàn thành)
-    // Thay vì viết Query phức tạp, Spring Data hỗ trợ "findByStatusIn"
     List<Invoice> findByStatusIn(List<InvoiceStatus> statuses);
 
-    // Tìm tất cả hóa đơn đã thanh toán xong
-    List<Invoice> findByStatus(InvoiceStatus status);
-
-    // Tìm hóa đơn gần nhất trước tháng hiện tại để lấy chỉ số cũ
-    @Query("SELECT i FROM Invoice i WHERE i.contract.id = :contractId AND (i.year < :year OR (i.year = :year AND i.month < :month)) ORDER BY i.year DESC, i.month DESC LIMIT 1")
-    Optional<Invoice> findLatestInvoiceBefore(Long contractId, Integer month, Integer year);
+    /**
+     * LOGIC TÌM HÓA ĐƠN LIỀN KỀ TRƯỚC ĐÓ (Để lấy chỉ số điện/nước cũ).
+     * Logic: Tìm các hóa đơn có (Năm < Năm hiện tại) HOẶC (Năm = Năm hiện tại VÀ Tháng < Tháng hiện tại).
+     * Sắp xếp giảm dần theo thời gian.
+     * Lưu ý: Không dùng LIMIT 1 trong JPQL. Ta sẽ truyền PageRequest.of(0, 1) từ Service.
+     */
+    @Query("SELECT i FROM Invoice i WHERE i.contract.id = :contractId " +
+           "AND (i.year < :year OR (i.year = :year AND i.month < :month)) " +
+           "ORDER BY i.year DESC, i.month DESC")
+    List<Invoice> findLatestInvoicesBefore(
+            @Param("contractId") Long contractId,
+            @Param("month") Integer month,
+            @Param("year") Integer year,
+            Pageable pageable
+    );
 }

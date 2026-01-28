@@ -3,21 +3,28 @@ package com.trandnquang.roomie.dto.payment;
 import com.trandnquang.roomie.model.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentRequest {
-    @NotNull(message = "Vui lòng chọn Hóa đơn cần thanh toán")
+    @NotNull(message = "Invoice ID is required")
     private Long invoiceId;
 
-    @NotNull(message = "Số tiền không được để trống")
-    @Positive(message = "Số tiền phải lớn hơn 0")
+    @NotNull(message = "Amount is required")
+    @Positive(message = "Amount must be greater than 0")
     private BigDecimal amount;
 
-    @NotNull(message = "Vui lòng chọn phương thức thanh toán")
-    private PaymentMethod paymentMethod; // CASH, BANK_TRANSFER...
+    @NotNull(message = "Payment method is required")
+    private PaymentMethod paymentMethod;
 
-    private String transactionCode; // Mã giao dịch ngân hàng
+    private String transactionCode;
     private String note;
 }
