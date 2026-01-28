@@ -7,44 +7,56 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "utility")
 @SQLDelete(sql = "UPDATE utility SET is_deleted = true WHERE id=?")
-@Where(clause = "is_deleted = false")
-@Getter @Setter
+@SQLRestriction("is_deleted = false")
+@Getter
+@Setter
 @SuperBuilder
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class Utility extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
+    @Column(nullable = false)
     private PricingType pricingType = PricingType.FLAT;
 
-    private String unit;
-    @Column(precision = 15, scale = 2)
+    private String unit; // e.g., kWh, m3, Person, Room
+
+    // Giá cơ bản (Dùng cho FIXED hoặc FLAT)
+    @Column(name = "base_price", precision = 15, scale = 2)
     private BigDecimal basePrice;
 
     private String description;
 
-    @JdbcTypeCode(SqlTypes.JSON) // Báo cho Hibernate biết đây là kiểu JSON
-    @Column(name = "tier_config", columnDefinition = "jsonb") // Mapping với cột jsonb trong PG
-    private List<TierConfig> tierConfig;
+    /**
+     * Cấu hình giá lũy tiến (Dùng cho TIERED).
+     * Hibernate 6 tự động map List<Object> thành JSON Array trong DB.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "tier_config", columnDefinition = "jsonb")
+    @Builder.Default
+    private List<TierConfig> tierConfig = new ArrayList<>();
 
     @Builder.Default
+    @Column(name = "is_active")
     private boolean isActive = true;
 
-    @Column(name = "is_deleted")
-    @Builder.Default
-    private boolean isDeleted = false;
+    // QUAN TRỌNG: Đã xóa field 'isDeleted'
 }

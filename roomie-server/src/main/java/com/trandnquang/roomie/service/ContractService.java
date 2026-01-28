@@ -69,17 +69,17 @@ public class ContractService {
         }
 
         // 5. Xử lý Chốt giá Dịch vụ (Locked Service Prices)
-        if (request.getServices() != null) {
-            request.getServices().forEach(sReq -> {
+        if (request.getUtilities() != null) {
+            request.getUtilities().forEach(sReq -> {
                 Utility originalUtility = utilityRepository.findById(sReq.getUtilityId())
-                        .orElseThrow(() -> new RuntimeException("Service not found"));
+                        .orElseThrow(() -> new RuntimeException("Utility not found"));
 
-                ContractUtility cs = ContractUtility.builder()
+                ContractUtility contractUtility = ContractUtility.builder()
                         .utility(originalUtility)
                         .amount(sReq.getAmount())
                         .startIndex(sReq.getStartIndex())
                         .build();
-                contract.addContractService(cs);
+                contract.addContractUtility(contractUtility);
             });
         }
 
@@ -137,7 +137,7 @@ public class ContractService {
                         .identityCardNumber(r.getIdentityCardNumber())
                         .isContractHolder(r.isContractHolder())
                         .build()).collect(Collectors.toList()))
-                .services(contract.getContractUtilities().stream().map(cs -> ContractUtilityResponse.builder()
+                .utilities(contract.getContractUtilities().stream().map(cs -> ContractUtilityResponse.builder()
                         .id(cs.getId())
                         .utilityId(cs.getUtility().getId())
                         .utilityName(cs.getUtility().getName())

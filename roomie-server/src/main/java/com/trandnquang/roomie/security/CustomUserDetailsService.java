@@ -3,12 +3,13 @@ package com.trandnquang.roomie.security;
 import com.trandnquang.roomie.entity.User;
 import com.trandnquang.roomie.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +22,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // Convert User Entity của mình sang User của Spring Security
+        // MAPPING QUAN TRỌNG:
+        // Chuyển Enum Role của ta thành Authority của Spring Security.
+        // Spring Security mặc định cần prefix "ROLE_" nếu dùng hasRole().
+        // Enum của ta là ROLE_ADMIN -> Khớp chuẩn.
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name());
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.emptyList() // Tạm thời để quyền rỗng, bài sau sẽ thêm Role
+                List.of(authority) // Đã thêm quyền vào đây
         );
     }
 }

@@ -29,5 +29,5 @@ public class ContractResponse {
 
     // Chi tiết con
     private List<ResidentResponse> residents;
-    private List<ContractUtilityResponse> services;
+    private List<ContractUtilityResponse> utilities;
 }

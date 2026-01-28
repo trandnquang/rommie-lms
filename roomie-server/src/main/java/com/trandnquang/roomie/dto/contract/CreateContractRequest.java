@@ -31,5 +31,5 @@ public class CreateContractRequest {
     private List<ResidentRequest> residents;
 
     // Danh sách dịch vụ đăng ký
-    private List<ContractUtilityRequest> services;
+    private List<ContractUtilityRequest> utilities;
 }

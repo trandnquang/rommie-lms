@@ -4,38 +4,44 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "property")
+// Hibernate 6.3+ Standard for Soft Delete
 @SQLDelete(sql = "UPDATE property SET is_deleted = true WHERE id=?")
-@Where(clause = "is_deleted = false")
-@Getter @Setter
+@SQLRestriction("is_deleted = false")
+@Getter
+@Setter
 @SuperBuilder
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class Property extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
+
     private String description;
 
     // Location Details
+    @Column(name = "address_line")
     private String addressLine;
     private String ward;
     private String district;
     private String city;
 
-    @Column(name = "is_deleted")
-    @Builder.Default
-    private boolean isDeleted = false;
+    // QUAN TRỌNG: Đã xóa field 'isDeleted' tại đây vì đã có trong BaseEntity
 
     // Relationship: One Property -> Many Rooms
-    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    // orphanRemoval = true: Nếu xóa Room khỏi list này, Room sẽ bị xóa khỏi DB (kết hợp Soft Delete)
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     private List<Room> rooms = new ArrayList<>();
 
