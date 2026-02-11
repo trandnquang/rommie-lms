@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  # Database Service: PostgreSQL 15
+  db:
+    image: postgres:15-alpine
+    container_name: roomie-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: roomie_admin
+      POSTGRES_PASSWORD: roomie_password_2024
+      POSTGRES_DB: roomie_lms_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roomie_admin -d roomie_lms_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run SQL initialization script
+      - ./roomie-server/src/main/resources/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - roomie-network
+
+  # Backend Service: Spring Boot (Java 21)
+  backend:
+    build:
+      context: ./roomie-server
+      dockerfile: Dockerfile
+    container_name: roomie-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/roomie_lms_db
+      SPRING_DATASOURCE_USERNAME: roomie_admin
+      SPRING_DATASOURCE_PASSWORD: roomie_password_2024
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - roomie-network
+
+  # Frontend Service: React (Served by Nginx)
+  frontend:
+    build:
+      context: ./roomie-client
+      dockerfile: Dockerfile
+    container_name: roomie-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - roomie-network
+
+networks:
+  roomie-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
